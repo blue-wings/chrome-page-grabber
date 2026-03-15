@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=600, initial-scale=1.0">
+  <title>Page Grabber</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 class="title" id="pageTitle">加载中...</h1>
+      <a class="url" id="pageUrl" href="#" target="_blank"></a>
+    </header>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="fullpage">全页面</button>
+      <button class="tab-btn" data-tab="snippets">已收集 <span id="snippetBadge" class="badge"></span></button>
+      <button class="tab-btn" data-tab="history">历史</button>
+    </div>
+
+    <!-- Full page tab -->
+    <div id="fullpagePanel" class="tab-panel">
+      <div class="controls">
+        <div class="template-row">
+          <select id="templateSelect">
+            <option value="">（无模板）</option>
+          </select>
+        </div>
+      </div>
+      <div class="preview-wrapper">
+        <textarea id="preview" placeholder="内容预览..."></textarea>
+        <div class="meta-row">
+          <span id="tokenCount">≈ 0 tokens</span>
+          <span id="tokenWarning" class="warning"></span>
+        </div>
+      </div>
+      <div class="segment-controls" id="segmentControls" style="display:none">
+        <button id="prevSegment" class="seg-btn">&larr;</button>
+        <span id="segmentInfo">第 1/1 部分</span>
+        <button id="nextSegment" class="seg-btn">&rarr;</button>
+      </div>
+      <button id="copyBtn" class="copy-btn">复制全页面到剪贴板</button>
+    </div>
+
+    <!-- Snippets tab -->
+    <div id="snippetsPanel" class="tab-panel" style="display:none">
+      <div class="snippet-hint">
+        选中文字 → 右键 →「收集选中内容」可多次收集，跨页面累积
+      </div>
+      <div id="snippetList" class="snippet-list"></div>
+      <div class="controls" style="margin-top:8px">
+        <div class="template-row">
+          <select id="snippetTemplateSelect">
+            <option value="">（无模板）</option>
+          </select>
+        </div>
+      </div>
+      <div class="preview-wrapper">
+        <textarea id="snippetPreview" placeholder="收集的内容将在此合并显示..."></textarea>
+        <div class="meta-row">
+          <span id="snippetTokenCount">≈ 0 tokens</span>
+          <span id="snippetTokenWarning" class="warning"></span>
+        </div>
+      </div>
+      <div class="snippet-actions">
+        <button id="copySnippetsBtn" class="copy-btn">复制收集内容到剪贴板</button>
+        <button id="clearSnippetsBtn" class="clear-btn">清空收集</button>
+      </div>
+    </div>
+
+    <!-- History tab -->
+    <div id="historyPanel" class="tab-panel" style="display:none">
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+
+  <script src="../lib/tokenizer.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

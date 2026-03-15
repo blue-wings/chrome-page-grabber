@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Page Grabber 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Page Grabber 设置</h1>
+
+    <section>
+      <h2>输出格式</h2>
+      <label>
+        <input type="radio" name="outputFormat" value="markdown" checked>
+        Markdown（推荐）
+      </label>
+      <label>
+        <input type="radio" name="outputFormat" value="plaintext">
+        纯文本
+      </label>
+    </section>
+
+    <section>
+      <h2>长文分段</h2>
+      <label>
+        每段最大 token 数：
+        <input type="number" id="segmentSize" value="8000" min="1000" max="200000" step="1000">
+      </label>
+    </section>
+
+    <section>
+      <h2>浮动按钮</h2>
+      <label>
+        <input type="checkbox" id="showFloatButton" checked>
+        在页面右下角显示浮动抓取按钮
+      </label>
+    </section>
+
+    <section>
+      <h2>Prompt 模板管理</h2>
+      <div id="templateList" class="template-list"></div>
+      <div class="add-template">
+        <input type="text" id="newTemplateLabel" placeholder="模板名称">
+        <textarea id="newTemplateText" placeholder="模板内容，例如：请总结以下内容："></textarea>
+        <button id="addTemplateBtn">添加模板</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>抓取历史</h2>
+      <p id="historyCount">0 条记录</p>
+      <button id="clearHistoryBtn" class="danger-btn">清除所有历史</button>
+    </section>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

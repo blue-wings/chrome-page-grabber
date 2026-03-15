@@ -1,0 +1,56 @@
+/* Page Grabber - Float Button */
+#page-grabber-float-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  z-index: 2147483647;
+  opacity: 0.35;
+  transition: opacity 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-size: 20px;
+  line-height: 1;
+}
+
+#page-grabber-float-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+#page-grabber-float-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+#page-grabber-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #10b981;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  z-index: 2147483647;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s, transform 0.3s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+
+#page-grabber-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}

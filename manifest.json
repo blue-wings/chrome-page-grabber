@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "Page Grabber for AI",
+  "version": "1.0.0",
+  "description": "抓取网页内容并复制到剪贴板，方便粘贴到 AI 对话中",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus",
+    "clipboardWrite"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/selection-cache.js"],
+      "run_at": "document_end"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["lib/readability.js", "lib/turndown.js", "content/content.js"],
+      "css": ["content/float-button.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "options_page": "options/options.html",
+  "commands": {
+    "grab-full-page": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G",
+        "mac": "Command+Shift+G"
+      },
+      "description": "抓取全页面内容"
+    },
+    "grab-selection": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "抓取选中内容"
+    }
+  }
+}
