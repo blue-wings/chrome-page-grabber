@@ -12,36 +12,10 @@ const DEFAULT_TEMPLATES = [
 // --- Context menu ---
 function setupContextMenus() {
   chrome.contextMenus.removeAll(() => {
-    // Collect selection (append to list)
     chrome.contextMenus.create({
       id: 'collect-selection',
       title: '收集选中内容',
       contexts: ['selection'],
-    });
-
-    // Grab and copy directly
-    chrome.contextMenus.create({
-      id: 'grab-selection-plain',
-      title: '抓取选中内容到剪贴板',
-      contexts: ['selection'],
-    });
-
-    chrome.contextMenus.create({
-      id: 'grab-selection-prompt',
-      title: '抓取并添加 Prompt',
-      contexts: ['selection'],
-    });
-
-    chrome.storage.sync.get({ customTemplates: [] }, (data) => {
-      const templates = [...DEFAULT_TEMPLATES.filter(t => t.id !== 'none'), ...data.customTemplates];
-      templates.forEach(t => {
-        chrome.contextMenus.create({
-          id: 'prompt-' + t.id,
-          parentId: 'grab-selection-prompt',
-          title: t.label,
-          contexts: ['selection'],
-        });
-      });
     });
   });
 }
@@ -81,27 +55,6 @@ async function showToastInTab(tabId, msg) {
   } catch(e) {}
 }
 
-// --- Copy to clipboard via executeScript ---
-async function copyInTab(tabId, text) {
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    func: (textToCopy) => {
-      navigator.clipboard.writeText(textToCopy).catch(() => {
-        const ta = document.createElement('textarea');
-        ta.value = textToCopy;
-        ta.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:0.01';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-      });
-    },
-    args: [text],
-  });
-  await showToastInTab(tabId, '已复制到剪贴板');
-}
-
 // --- Collect selection: append to snippets list ---
 async function collectSelection(tab, text) {
   const snippet = {
@@ -122,32 +75,12 @@ async function collectSelection(tab, text) {
   chrome.action.setBadgeBackgroundColor({ color: '#4f46e5' });
 }
 
-function buildGrabbedText(title, url, content, promptTemplate) {
-  let text = `# ${title}\n\n> 来源: ${url}\n\n${content}`;
-  if (promptTemplate) {
-    text = promptTemplate + '\n\n---\n\n' + text;
-  }
-  return text;
-}
-
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const selectedText = info.selectionText || '';
   if (!selectedText) return;
 
   if (info.menuItemId === 'collect-selection') {
     await collectSelection(tab, selectedText);
-    addHistory(tab);
-  } else if (info.menuItemId === 'grab-selection-plain') {
-    const finalText = buildGrabbedText(tab.title, tab.url, selectedText, '');
-    await copyInTab(tab.id, finalText);
-    addHistory(tab);
-  } else if (info.menuItemId.startsWith('prompt-')) {
-    const templateId = info.menuItemId.replace('prompt-', '');
-    const data = await chrome.storage.sync.get({ customTemplates: [] });
-    const all = [...DEFAULT_TEMPLATES, ...data.customTemplates];
-    const tpl = all.find(t => t.id === templateId);
-    const finalText = buildGrabbedText(tab.title, tab.url, selectedText, tpl ? tpl.text : '');
-    await copyInTab(tab.id, finalText);
     addHistory(tab);
   }
 });
