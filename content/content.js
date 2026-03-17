@@ -71,37 +71,107 @@
   }
 
   // --- Content Extraction ---
+  const SEMANTIC_SELECTORS = [
+    'article',
+    'main',
+    '[role="main"]',
+    '.post-content',
+    '.article-content',
+    '.entry-content',
+    '.content',
+    '#content',
+  ];
+
+  const NOISE_TAGS = ['script', 'style', 'nav', 'header', 'footer', 'aside', 'noscript', 'svg', 'iframe'];
+
+  function cleanBodyClone() {
+    const bodyClone = document.body.cloneNode(true);
+    NOISE_TAGS.forEach(tag => {
+      bodyClone.querySelectorAll(tag).forEach(el => el.remove());
+    });
+    // Remove hidden elements and empty containers
+    bodyClone.querySelectorAll('[style*="display: none"], [style*="display:none"], [hidden], [aria-hidden="true"]').forEach(el => el.remove());
+    return bodyClone;
+  }
+
+  // Normalize extracted text: collapse excessive whitespace/newlines
+  function normalizeText(text) {
+    return text.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+  }
+
+  function isContentMeaningful(text) {
+    if (!text) return false;
+    // Strip all whitespace and check if remaining chars are meaningful
+    const stripped = text.replace(/\s+/g, '');
+    return stripped.length >= 50;
+  }
+
   function extractFullPage(format) {
-    const docClone = document.cloneNode(true);
-    let article;
+    const title = document.title;
+    let content = '';
+
+    // 1. Try Readability
     try {
+      const docClone = document.cloneNode(true);
       const reader = new Readability(docClone);
-      article = reader.parse();
+      const article = reader.parse();
+      if (article && article.content) {
+        const text = format === 'markdown' ? htmlToMarkdown(article.content) : (article.textContent || '');
+        if (isContentMeaningful(text)) {
+          return { title: article.title || title, url: location.href, content: normalizeText(text) };
+        }
+      }
     } catch (e) {
-      article = null;
+      // Readability failed, continue to fallback
     }
 
-    const title = article ? article.title : document.title;
-    let content;
-
-    if (article && article.content) {
-      if (format === 'markdown') {
-        content = htmlToMarkdown(article.content);
-      } else {
-        content = article.textContent || '';
+    // 2. Try semantic selectors (use markdown only for these clean containers)
+    for (const selector of SEMANTIC_SELECTORS) {
+      try {
+        const el = document.querySelector(selector);
+        if (el) {
+          const text = format === 'markdown' ? htmlToMarkdown(el.innerHTML) : el.innerText;
+          if (isContentMeaningful(text)) {
+            content = normalizeText(text);
+            break;
+          }
+        }
+      } catch (e) {
+        // This selector failed, try next
       }
-    } else {
-      content = document.body.innerText || '';
+    }
+
+    // 3. Fallback: cleaned body — always use innerText (no markdown for full body)
+    if (!isContentMeaningful(content)) {
+      try {
+        const bodyClone = cleanBodyClone();
+        content = normalizeText(bodyClone.innerText || '');
+      } catch (e) {
+        content = normalizeText(document.body.innerText || '');
+      }
     }
 
     return { title, url: location.href, content };
   }
 
   function htmlToMarkdown(html) {
+    // Remove base64 images and data URIs from HTML before conversion
+    // They bloat output massively (a single image can be 10K+ chars)
+    const cleanHtml = html
+      .replace(/<img[^>]+src=["']data:[^"']*["'][^>]*>/gi, '')
+      .replace(/url\(["']?data:[^)]*\)/gi, 'url()');
+
     const td = new TurndownService({
       headingStyle: 'atx',
       codeBlockStyle: 'fenced',
       bulletListMarker: '-',
+    });
+    // Skip images with data: URIs that survived HTML cleaning
+    td.addRule('removeDataImages', {
+      filter: function (node) {
+        return node.nodeName === 'IMG' && node.getAttribute('src') && node.getAttribute('src').startsWith('data:');
+      },
+      replacement: function () { return ''; }
     });
     td.addRule('table', {
       filter: 'table',
@@ -109,7 +179,7 @@
         return convertTableToMarkdown(node);
       }
     });
-    return td.turndown(html);
+    return td.turndown(cleanHtml);
   }
 
   function convertTableToMarkdown(tableEl) {
@@ -202,15 +272,18 @@
 
     if (msg.action === 'extractContent') {
       (async () => {
-        const settings = await getSettings();
-        const format = settings.outputFormat || 'markdown';
-        let result;
-        if (msg.mode === 'selection') {
-          result = extractFullPage(format); // popup selection handled by popup itself
-        } else {
-          result = extractFullPage(format);
+        try {
+          const settings = await getSettings();
+          const format = settings.outputFormat || 'markdown';
+          const result = extractFullPage(format);
+          sendResponse(result);
+        } catch (e) {
+          sendResponse({
+            title: document.title,
+            url: location.href,
+            content: document.body.innerText || '',
+          });
         }
-        sendResponse(result);
       })();
       return true;
     }

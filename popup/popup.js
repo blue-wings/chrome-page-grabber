@@ -164,6 +164,16 @@
 
   function updateFullPagePreview() {
     if (!extractedData) return;
+
+    // Empty content protection: strip all whitespace to check for real content
+    const strippedContent = (extractedData.content || '').replace(/\s+/g, '');
+    if (strippedContent.length < 50) {
+      preview.value = '⚠ 未能提取到有效页面内容。\n\n可能原因：\n- 页面内容尚未加载完成（SPA 应用）\n- 页面结构不支持自动提取\n- 页面内容为空\n\n建议：等待页面完全加载后重试，或手动选中内容后使用「收集选区」功能。';
+      segmentControls.style.display = 'none';
+      updateTokenDisplay(preview, tokenCount, tokenWarning);
+      return;
+    }
+
     const template = templateSelect.value;
     let text = `# ${extractedData.title}\n\n> 来源: ${extractedData.url}\n\n${extractedData.content}`;
     if (template) {
