@@ -30,6 +30,10 @@
   const segmentControls = document.getElementById('segmentControls');
   const segmentInfo = document.getElementById('segmentInfo');
   const copyBtn = document.getElementById('copyBtn');
+  const copyAllBtn = document.getElementById('copyAllBtn');
+
+  // Store unsegmented full text for "copy all"
+  let fullUnsegmentedText = '';
 
   // Snippets tab
   const snippetsPanel = document.getElementById('snippetsPanel');
@@ -84,7 +88,8 @@
     // Full page tab
     templateSelect.addEventListener('change', updateFullPagePreview);
     preview.addEventListener('input', () => updateTokenDisplay(preview, tokenCount, tokenWarning));
-    copyBtn.addEventListener('click', () => copyText(preview.value, copyBtn, '复制全页面到剪贴板'));
+    copyBtn.addEventListener('click', () => copyText(preview.value, copyBtn, segments.length > 1 ? '复制当前段' : '复制全页面到剪贴板'));
+    copyAllBtn.addEventListener('click', () => copyText(fullUnsegmentedText, copyAllBtn, '复制全部内容（不分段）'));
     document.getElementById('prevSegment').addEventListener('click', () => navigateSegment(-1));
     document.getElementById('nextSegment').addEventListener('click', () => navigateSegment(1));
 
@@ -182,14 +187,19 @@
 
     chromeStorageGet({ segmentSize: 8000 }).then(data => {
       const totalTokens = TokenEstimator.estimate(text);
+      fullUnsegmentedText = text;
       if (totalTokens > data.segmentSize) {
         segments = splitIntoSegments(text, data.segmentSize);
         currentSegment = 0;
+        copyBtn.textContent = '复制当前段';
+        copyAllBtn.style.display = '';
         showSegment();
       } else {
         segments = [text];
         currentSegment = 0;
         segmentControls.style.display = 'none';
+        copyBtn.textContent = '复制全页面到剪贴板';
+        copyAllBtn.style.display = 'none';
         preview.value = text;
         updateTokenDisplay(preview, tokenCount, tokenWarning);
       }

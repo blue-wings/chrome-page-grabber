@@ -18,6 +18,8 @@ body {
   select, textarea { background: #313244 !important; color: #cdd6f4 !important; border-color: #45475a !important; }
   .copy-btn { background: #89b4fa; color: #1e1e2e; }
   .copy-btn:hover { background: #74c7ec; }
+  .copy-all-btn { background: #a6e3a1; color: #1e1e2e; }
+  .copy-all-btn:hover { background: #94e2d5; }
   .tab-btn { color: #a6adc8; border-color: transparent; }
   .tab-btn.active { color: #89b4fa; border-color: #89b4fa; }
   .seg-btn { background: #313244; color: #cdd6f4; border-color: #45475a; }
@@ -92,6 +94,9 @@ textarea:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgb
 .copy-btn:hover { background: #4338ca; }
 .copy-btn:active { transform: scale(0.98); }
 .copy-btn.copied { background: #10b981; }
+.copy-actions { display: flex; flex-direction: column; gap: 6px; }
+.copy-all-btn { background: #059669; }
+.copy-all-btn:hover { background: #047857; }
 
 .snippet-hint {
   font-size: 11px; color: #6b7280; text-align: center; padding: 8px;
